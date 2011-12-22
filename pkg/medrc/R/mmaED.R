@@ -1,5 +1,6 @@
 mmaED <-
-function(object, ..., respLev, ic = "AIC", interval = c("none", "buckland", "kang"), level = 0.95, bmd = c("none", "additional", "extra"), background = 0.05, dmList = NULL){
+function(object, ..., respLev, ic = "AIC", interval = c("none", "buckland", "kang"), level = 0.9, bmd = c("none", "additional", "extra"), 
+background = 0.05, dmList = NULL){
   lllist <- list(object, ...)
   ismedrc <- sapply(lllist, function(x) inherits(x, "medrc"))
   mllist <- lllist[ismedrc]  
@@ -23,7 +24,7 @@ function(object, ..., respLev, ic = "AIC", interval = c("none", "buckland", "kan
   if (bmd[1] == "none"){
     respLevMat <- matrix(respLev, nrow=length(lllist), ncol=length(respLev), byrow=TRUE)    
   } else {
-    level <- 0.9 #????????????????????????
+#    level <- 0.9 #????????????????????????  changed default value of "level" argument to 0.9 
     lenRL <- length(respLev)
     respLevMat <- matrix(sapply(1:lenRL, function(i) sapply(1:length(lllist),function(x){
       objectFit <- lllist[[x]]$fit
@@ -79,4 +80,5 @@ function(object, ..., respLev, ic = "AIC", interval = c("none", "buckland", "kan
   if (interval[1] == "buckland") {out$SEi <- edSe}  
   return(out)
 }
+
 

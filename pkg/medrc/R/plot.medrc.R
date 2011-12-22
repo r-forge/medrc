@@ -38,7 +38,17 @@ function(x, ..., logx=FALSE){
   dose <- x$data[,ndose]
   group <- x$data[,ngroup]
   odat <- data.frame(response, dose, group)
-  if (logx == TRUE) dseq <- exp(seq(log(min(dose)), log(max(dose)), length=250)) else dseq <- seq(min(dose), max(dose), length=250)
+  if (logx == TRUE){
+    if (min(dose) == 0){
+      m0 <- mean(unique(dose)[order(unique(dose))][1:2])
+      odat$dose[dose == 0] <- m0
+      dose[dose == 0] <- m0
+    }
+    dseq <- exp(seq(log(min(dose)), log(max(dose)), length=250))
+  } else {
+    dseq <- seq(min(dose), max(dose), length=250)
+  }
+  
   pdat <- with(odat, expand.grid(dose=dseq, group=levels(group)))
   names(pdat) <- c(ndose, ngroup)
   if (many){

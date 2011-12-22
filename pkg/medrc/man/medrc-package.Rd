@@ -8,8 +8,8 @@
 \tabular{ll}{
 Package: \tab medrc\cr
 Type: \tab Package\cr
-Version: \tab 0.0-2\cr
-Date: \tab 2011-12-20\cr
+Version: \tab 0.0-3\cr
+Date: \tab 2011-12-22\cr
 License: \tab GPL\cr
 LazyLoad: \tab yes\cr
 }

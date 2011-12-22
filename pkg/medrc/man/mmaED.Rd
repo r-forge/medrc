@@ -3,7 +3,7 @@
 \title{ED estimation for averaged medrc models}
 \description{Estimates ED for averaged fixed effects of several medrc objects}
 \usage{
-mmaED(object, ..., respLev, ic = "AIC", interval = c("none", "buckland", "kang"), level = 0.95, bmd = c("none", "additional", "extra"), background = 0.05, dmList = NULL)
+mmaED(object, ..., respLev, ic = "AIC", interval = c("none", "buckland", "kang"), level = 0.9, bmd = c("none", "additional", "extra"), background = 0.05, dmList = NULL)
 }
 \arguments{
   \item{object}{an medrc object}
@@ -12,7 +12,7 @@ mmaED(object, ..., respLev, ic = "AIC", interval = c("none", "buckland", "kang")
   \item{ic}{the information criterion used for model averaging}
   \item{interval}{character string specifying the type of confidence
     intervals to be supplied.}
-  \item{level}{confidence level}
+  \item{level}{confidence level, default at 0.9}
   \item{bmd}{benchmark dose estimation (smallest dose resulting in a
     probability of an abnormal response)}
   \item{background}{probability of an abnormal response}
