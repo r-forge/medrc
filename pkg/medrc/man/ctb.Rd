@@ -45,17 +45,41 @@ ctb.FPL4c.mixed <- medrm(fluorescence ~ conc, fct=FPL.4(-1, 2),
 ctb.FPL4d.mixed <- medrm(fluorescence ~ conc, fct=FPL.4(-0.5, 3),
  data=ctb, random=d  ~ 1 | day/plate)
 
+summary(ctb.LL4.mixed)
+summary(ctb.LN4.mixed)
+summary(ctb.W14.mixed)
+summary(ctb.W24.mixed)
+summary(ctb.FPL4a.mixed)
+summary(ctb.FPL4b.mixed)
+summary(ctb.FPL4c.mixed)
+summary(ctb.FPL4d.mixed)
+
 ## information criteria
 medrcselect(ctb.LL4.mixed, ctb.LN4.mixed, ctb.W14.mixed,
             ctb.W24.mixed, ctb.FPL4a.mixed, ctb.FPL4b.mixed,
             ctb.FPL4c.mixed, ctb.FPL4d.mixed)
 
 ## BMDL estimation for BMR 1, 5, 10, 20
-mmaED(ctb.LL4.mixed, ctb.LN4.mixed, ctb.W14.mixed,
+ctb0.01 <- mmaED(ctb.LL4.mixed, ctb.LN4.mixed, ctb.W14.mixed,
       ctb.W24.mixed, ctb.FPL4a.mixed, ctb.FPL4b.mixed,
       ctb.FPL4c.mixed, ctb.FPL4d.mixed,
       respLev=c(1,5,10,20),
-      interval = "buckland", bmd = "additional")
+      interval = "buckland", bmd = "extra", background=0.01)
+ctb0.01$retMat[, c(1, 3)]
+      
+ctb0.05 <- mmaED(ctb.LL4.mixed, ctb.LN4.mixed, ctb.W14.mixed,
+      ctb.W24.mixed, ctb.FPL4a.mixed, ctb.FPL4b.mixed,
+      ctb.FPL4c.mixed, ctb.FPL4d.mixed,
+      respLev=c(1,5,10,20),
+      interval = "buckland", bmd = "extra", background=0.05)
+ctb0.05$retMat[, c(1, 3)]
+      
+ctb0.10 <- mmaED(ctb.LL4.mixed, ctb.LN4.mixed, ctb.W14.mixed,
+      ctb.W24.mixed, ctb.FPL4a.mixed, ctb.FPL4b.mixed,
+      ctb.FPL4c.mixed, ctb.FPL4d.mixed,
+      respLev=c(1,5,10,20),
+      interval = "buckland", bmd = "extra", background=0.1)
+ctb0.10$retMat[, c(1, 3)]
 }
 
 \keyword{datasets}
