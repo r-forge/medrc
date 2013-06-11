@@ -7,7 +7,8 @@ Implements drc nonlinear functions into the nlme framework for mixed
 effects dose-response modeling.
 }
 \usage{
-medrm(form, curveid=NULL, data, fct, random, correlation = NULL, weights = NULL, control = NULL, start = NULL)
+medrm(form, curveid=NULL, data, fct, random, correlation = NULL, 
+      weights = NULL, control = NULL, start = NULL)
 }
 
 \arguments{

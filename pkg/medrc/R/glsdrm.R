@@ -62,7 +62,7 @@ function(form, curveid=NULL, data, fct, correlation=NULL, weights=NULL, control=
       pnames <- fct$names      
       ocoef <- coefficients(fmgls)
       flev <- length(levelnames)
-      rcoefs <- rep(ocoef, each=nl)
+      rcoefs <- rep(ocoef, each=flev)
       cnames <- paste(rep(pnames, each=flev), levelnames, sep=".")
       names(rcoefs) <- cnames
       out$coefficients <- rcoefs      

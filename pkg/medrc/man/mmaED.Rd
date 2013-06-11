@@ -3,7 +3,9 @@
 \title{ED estimation for averaged medrc models}
 \description{Estimates ED for averaged fixed effects of several medrc objects}
 \usage{
-mmaED(object, ..., respLev, ic = "AIC", interval = c("none", "buckland", "kang"), level = 0.9, bmd = c("none", "additional", "extra"), background = 0.05, dmList = NULL)
+mmaED(object, ..., respLev, ic = "AIC", interval = c("none", "buckland", "kang"), 
+     level = 0.9, bmd = c("none", "additional", "extra"), 
+     background = 0.05, dmList = NULL)
 }
 \arguments{
   \item{object}{an medrc object}

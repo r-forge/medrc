@@ -6,7 +6,8 @@
 Implements drc nonlinear functions into the nlme framework for nonlinear GLS dose-response modeling.
 }
 \usage{
-glsdrm(form, curveid=NULL, data, fct, correlation = NULL, weights = NULL, control = NULL, start = NULL)
+glsdrm(form, curveid=NULL, data, fct, correlation = NULL, 
+       weights = NULL, control = NULL, start = NULL)
 }
 
 \arguments{

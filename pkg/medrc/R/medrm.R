@@ -60,7 +60,7 @@ function(form, curveid=NULL, data, fct, random, correlation=NULL, weights=NULL, 
       pnames <- fct$names      
       ocoef <- fixef(fmmixed)
       flev <- length(levelnames)
-      rcoefs <- rep(ocoef, each=nl)
+      rcoefs <- rep(ocoef, each=flev)
       cnames <- paste(rep(pnames, each=flev), levelnames, sep=".")
       names(rcoefs) <- cnames
       out$coefficients <- rcoefs      
