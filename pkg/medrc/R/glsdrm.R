@@ -7,6 +7,14 @@ function(form, curveid=NULL, data, fct, correlation=NULL, weights=NULL, control=
   # drcfunction() is defined in global environment...
   makehelpfunction(fct)
 
+  # one-sided curveid formula
+  if (!is.null(curveid) & length(curveid) < 3){
+    levelnames <- levels(data[, as.character(curveid)[2]])
+    curveid <- NULL
+  } else {
+    levelnames <- NULL
+  }
+  
   # dose-response formula
   mform <- deparse(as.formula(paste(as.character(form)[2], as.character(form)[1], "drcfunction(", as.character(form)[3], ", ", paste(fct$names, collapse=", "), ")", sep="")))  
   
@@ -44,12 +52,35 @@ function(form, curveid=NULL, data, fct, correlation=NULL, weights=NULL, control=
   out$fct <- fct
   out$data <- data    
   if (is.null(curveid)){  
-    out$coefficients <- coefficients(fmgls)
-    out$parmMat <- cbind(coefficients(fmgls))
-    colnames(out$parmMat) <- "1"
-    out$vc <- vcov(fmgls)
-    out$indexMat <- cbind(1:length(coefficients(fmgls)))
-  } else {
+    if (is.null(levelnames)){
+      out$coefficients <- coefficients(fmgls)
+      out$parmMat <- cbind(coefficients(fmgls))
+      colnames(out$parmMat) <- "1"
+      out$vc <- vcov(fmgls)
+      out$indexMat <- cbind(1:length(coefficients(fmgls)))
+    } else {
+      pnames <- fct$names      
+      ocoef <- coefficients(fmgls)
+      flev <- length(levelnames)
+      rcoefs <- rep(ocoef, each=nl)
+      cnames <- paste(rep(pnames, each=flev), levelnames, sep=".")
+      names(rcoefs) <- cnames
+      out$coefficients <- rcoefs      
+      cf <- matrix(rep(ocoef, each=flev), ncol=flev, byrow=TRUE)
+      colnames(cf) <- levelnames
+      rownames(cf) <- pnames
+      out$parmMat <- cf
+      imat <- matrix(1, nrow=flev, ncol=length(ocoef))
+      out$imat <- imat
+      ii <- as.vector(t(apply(imat, 1, function(x) (1:ncol(imat))[as.logical(x)])))
+      indmat <- t(sapply(ii, function(i){
+        x <- numeric(length=ncol(imat))
+        x[i] <- 1
+        return(x)
+      }))
+      out$vc <- indmat %*% vcov(fmgls) %*% t(indmat)
+      out$indexMat <- matrix(seq(1, flev*length(pnames), by=1), ncol=flev, byrow=TRUE)   
+    }} else {
     pnames <- fct$names
     stsp <- strsplit(as.character(curveid)[2], "+")[[1]]
     cin <- stsp[!stsp %in% c(" ", "+")]

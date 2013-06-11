@@ -2,7 +2,7 @@ mmaED <-
 function(object, ..., respLev, ic = "AIC", interval = c("none", "buckland", "kang"), level = 0.9, bmd = c("none", "additional", "extra"), 
 background = 0.05, dmList = NULL){
   lllist <- list(object, ...)
-  ismedrc <- sapply(lllist, function(x) inherits(x, "medrc"))
+  ismedrc <- sapply(lllist, function(x) inherits(x, "medrc") | inherits(x, "glsdrc"))
   mllist <- lllist[ismedrc]  
   msl <- sapply(mllist, function(x) x$mselect)
   Call <- match.call()
@@ -10,7 +10,6 @@ background = 0.05, dmList = NULL){
   Call$ic <- NULL
   Call$interval <- NULL
   Call$level <- NULL
-#  Call$diagOnly <- NULL
   Call$bmd <- NULL
   Call$background <- NULL
   Call$dmList <- NULL
@@ -24,7 +23,6 @@ background = 0.05, dmList = NULL){
   if (bmd[1] == "none"){
     respLevMat <- matrix(respLev, nrow=length(lllist), ncol=length(respLev), byrow=TRUE)    
   } else {
-#    level <- 0.9 #????????????????????????  changed default value of "level" argument to 0.9 
     lenRL <- length(respLev)
     respLevMat <- matrix(sapply(1:lenRL, function(i) sapply(1:length(lllist),function(x){
       objectFit <- lllist[[x]]$fit
@@ -38,8 +36,8 @@ background = 0.05, dmList = NULL){
   }
   ## Calculating ED values
   if (is.null(dmList) || interval[1] == "kang"){
-    edEst <- t(sapply(1:length(mllist), function(x) ED(mllist[[x]], respLevMat[x,], display = FALSE)[,1]))    
-    if (ncol(respLevMat) == 1) edEst <- t(edEst)
+    edEst <- t(sapply(1:length(mllist), function(x) ED(mllist[[x]], respLevMat[x,], display = FALSE)[,1]))  
+    if (ncol(respLevMat) == 1 & ncol(edEst) == 1) edEst <- t(edEst)
   } else {
     edESSE <- lapply(1:ncol(respLevMat), function(i) sapply(1:length(dmList), function(x){deltaMethod(mllist[[x]]$fit, dmList[[x]](respLevMat[x,i]/100), vcov(mllist[[x]]$fit))}))
     edEst <- matrix(sapply(edESSE, function(x) as.numeric(x[1, , drop = FALSE])), nrow=length(dmList), ncol=length(respLev))
