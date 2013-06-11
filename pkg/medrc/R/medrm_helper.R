@@ -1,6 +1,4 @@
-residuals.medrc <-
-function(object, ...){
-  fct <- object$fct
+makehelpfunction <- function(fct){
   drcfunction <- function(){
     if (is.null(fct$fixed)) fct$fixed <- rep(NA, length(fct$names))
     parmVec <- fct$fixed
@@ -25,6 +23,27 @@ function(object, ...){
     names(val) <- fct$names
     val
   }
-  assign("drcfunction", drcfunction, envir=.GlobalEnv)
-  resid(object$fit, type="n")
+  assign("drcfunction", drcfunction, envir=.GlobalEnv) # find any way around assigning to global envir??? 
+}
+
+
+
+findfixedstartvals <- function(form, data, cid, fct, fid, mform){
+  if (is.na(cid)){
+    mf <- model.frame(form, data)
+    return(fct$ssfct(mf))
+  } else {
+    cform <- as.formula(paste(as.character(form)[2], as.character(form)[1], as.character(form)[3], "+", cid))
+    mf <- model.frame(cform, data)
+    spl <- split(mf, mf[,3])
+    fullp <- coefficients(eval(parse(text=paste("nls(", mform, ", data=mf[,1:2])", sep=""))))
+    pmat <- t(sapply(spl, function(x){
+      trycoef <- try(coefficients(eval(parse(text=paste("nls(", mform, ", data=x)", sep="")))), silent=TRUE)  
+      if (class(trycoef)[1] == "try-error") return(fullp) else return(trycoef)
+    }))   
+    plist <- lapply(1:length(fid), function(i){
+      if (fid[i]) fullp[i] else pmat[,i]   
+    }) 
+    return(unlist(plist))
+  }
 }

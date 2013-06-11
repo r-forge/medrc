@@ -1,67 +1,67 @@
-plot.medrc <-
-function(x, ..., logx=FALSE){
+plot.medrc <- function(x, ..., ndose=25, ranef=FALSE, level=NULL, logx=FALSE){
   require(ggplot2)
+  require(plyr)
   fct <- x$fct
-  drcfunction <- function(){
-    if (is.null(fct$fixed)) fct$fixed <- rep(NA, length(fct$names))
-    parmVec <- fct$fixed
-    notFixed <- is.na(parmVec)
-    numParm <- length(parmVec)
-    .value <- fct$fct(dose, eval(parse(text=paste("cbind(", paste(fct$names, collapse=", "),")", sep = ""))))
-    .actualArgs <- as.list(match.call()[fct$names])
-    if (all(unlist(lapply(.actualArgs, is.name)))) {
-      .grad <- fct$deriv1(dose, eval(parse(text=paste("cbind(", paste(fct$names, collapse=", "),")", sep = ""))))
-      dimnames(.grad) <- list(NULL, .actualArgs)
-      attr(.value, "gradient") <- .grad
-    }
-    .value
-  }
-  aargs <- paste("dose=,", paste(fct$names, collapse="=,"), "=", sep="")
-  formals(drcfunction) <- eval(parse(text = paste("alist(", aargs,")", sep = "")))
-  attr(drcfunction, "pnames") <- fct$names
-  attr(drcfunction, "class") <- "selfStart"
-  attr(drcfunction,"initial") <- function(mCall, data, LHS){
-    xy <- sortedXyData(mCall[["dose"]], LHS, data)
-    val <- fct$ssfct(xy)
-    names(val) <- fct$names
-    val
-  }
-  assign("drcfunction", drcfunction, envir=.GlobalEnv)
-  nresponse <- as.character(x$form[[2]])
-  ndose <- as.character(x$form[[3]])
-  ngroup <- strsplit(as.character(x$rform[[3]][3]), split="/")[[1]]
-  if (length(ngroup) > 1){
-    many <- TRUE
-    ngroup <- ngroup[1]
-  } else many <- FALSE
-  response <- x$data[,nresponse]
-  dose <- x$data[,ndose]
-  group <- x$data[,ngroup]
-  odat <- data.frame(response, dose, group)
-  if (logx == TRUE){
-    if (min(dose) == 0){
-      m0 <- mean(unique(dose)[order(unique(dose))][1:2])
-      odat$dose[dose == 0] <- m0
-      dose[dose == 0] <- m0
-    }
-    dseq <- exp(seq(log(min(dose)), log(max(dose)), length=250))
-  } else {
-    dseq <- seq(min(dose), max(dose), length=250)
-  }
+  makehelpfunction(fct)
   
-  pdat <- with(odat, expand.grid(dose=dseq, group=levels(group)))
-  names(pdat) <- c(ndose, ngroup)
-  if (many){
-    pdat$response <- predict(x$fit, newdata=pdat, level=0)
+  yname <- as.character(x$form)[2]
+  xname <- as.character(x$form)[3]
+  if (is.null(x$curveid)){
+    pform <- x$form
   } else {
-    pdat$response <- predict(x$fit, newdata=pdat)
+    fname <- as.character(x$curveid)[3]
+    pform <- paste(yname, "~", xname, "+", fname)
   }
-  pdat$fixresponse <- predict(x$fit, newdata=pdat, level=0)
-  names(pdat) <- c("dose", "group", "response", "fixresponse")
+  mf <- model.frame(pform, data=x$data)
+  
   if (logx == TRUE){
-    ggplot(odat, aes(x=dose, y=response, colour=group)) + geom_point() + geom_line(data=pdat) + geom_line(data=pdat, aes(y=fixresponse), colour="black") + xlab(ndose) + ylab(nresponse) + scale_colour_discrete(name=ngroup) + coord_trans(x = "log")
+    if (min(mf[,2]) == 0){
+      m0 <- mean(unique(mf[,2])[order(unique(mf[,2]))][1:2])
+    } else {
+      m0 <- min(mf[,2]) 
+    }
+    dr <- exp(seq(log(m0), log(max(mf[,2])), length=ndose))
   } else {
-    ggplot(odat, aes(x=dose, y=response, colour=group)) + geom_point() + geom_line(data=pdat) + geom_line(data=pdat, aes(y=fixresponse), colour="black") + xlab(ndose) + ylab(nresponse) + scale_colour_discrete(name=ngroup)
-  }
+    dr <- seq(min(mf[,2]), max(mf[,2]), length=ndose)
+  } 
+  
+  if (is.null(x$curveid)){
+    if (ranef == TRUE){
+      if (is.null(level)){
+        cf <- coef(x$fit)
+      } else {
+        cf <- coef(x$fit, level=level)
+      }
+      predictions <- stack(data.frame(apply(cf, 1, function(para) x$fct$fct(dr, rbind(para)))))$values
+      pdat <- data.frame(predictions, dose=rep(dr, times=nrow(cf)), ID=rep(rownames(cf), each=ndose))   
+      if (logx == TRUE){
+        eval(parse(text=paste("ggplot(mf, aes(x=log(",xname,"), y=",yname,")) + geom_point(alpha=0.3) + geom_line(data=pdat, aes(x=log(dose), y=predictions, colour=ID))", sep="")))
+      } else {
+        eval(parse(text=paste("ggplot(mf, aes(x=",xname,", y=",yname,")) + geom_point(alpha=0.3) + geom_line(data=pdat, aes(x=dose, y=predictions, colour=ID))", sep="")))
+      }
+    } else {      
+      predictions <- x$fct$fct(dr, rbind(coefficients(x)))
+      pdat <- data.frame(predictions, dose=dr)   
+      if (logx == TRUE){
+        eval(parse(text=paste("ggplot(mf, aes(x=log(",xname,"), y=",yname,")) + geom_point(alpha=0.3) + geom_line(data=pdat, aes(x=log(dose), y=predictions), colour='blue3')", sep="")))
+      } else {
+        eval(parse(text=paste("ggplot(mf, aes(x=",xname,", y=",yname,")) + geom_point(alpha=0.3) + geom_line(data=pdat, aes(x=dose, y=predictions), colour='blue3')", sep="")))
+      }
+    }
+  } else {
+    if (ranef == TRUE){
+      print("Sorry, ranef=TRUE for different curveids is not yet implemented...")
+    } else {
+      flev <- length(levels(mf[,3])) 
+      cf <- matrix(coefficients(x), ncol=flev, byrow=TRUE)
+      predictions <- stack(data.frame(apply(cf, 2, function(para) x$fct$fct(dr, rbind(para)))))$values
+      pdat <- data.frame(predictions, dose=rep(dr, times=ncol(cf)), curve=rep(levels(mf[,3]), each=ndose))
+      if (logx == TRUE){
+        eval(parse(text=paste("ggplot(mf, aes(x=log(",xname,"), y=",yname,", colour=", fname,")) + geom_point(alpha=0.3) + geom_line(data=pdat, aes(x=log(dose), y=predictions, colour=curve))", sep="")))
+      } else {
+        eval(parse(text=paste("ggplot(mf, aes(x=",xname,", y=",yname,", colour=", fname,")) + geom_point(alpha=0.3) + geom_line(data=pdat, aes(x=dose, y=predictions, colour=curve))", sep="")))
+      }
+    }    
+  }  
 }
 

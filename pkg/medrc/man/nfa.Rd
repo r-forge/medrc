@@ -22,58 +22,51 @@
   network formation assay: a spatially standardized neurite outgrowth
   analytical display for neurotoxicity screening. Lab Chip 2010; 10:701-709.
 }
+
 \examples{
+\dontrun{
 data(nfa)
+
+ggplot(nfa, aes(x=log(conc), y=response, colour=experiment)) + 
+  geom_point()
+
+# starting values for fixed effects
+fix <- coefficients(drm(response ~ conc, fct=LL.4(), data=nfa))
+
+# starting values for random experiment effects
+rexp <- drm(response ~ conc, curveid=experiment, fct=LL.4(), data=nfa)
+cmatexp <- matrix(coefficients(rexp), ncol=4)
+mexp <- apply(cmatexp, 2, mean)
+names(mexp) <- letters[2:5]
+rmatexp <- t(apply(cmatexp, 1, function(x) x-mday))
+rownames(rmatexp) <- levels(nfa$experiment)
+colnames(rmatexp) <- letters[2:5]
+
+start <- list(fixed=fix, random=list(experiment=rmatexp[,3, drop=FALSE]))
+
 
 ## set of nonlinear mixed models
 nfa.LL4.mixed <- medrm(response ~ conc, fct=LL.4(),
- data=nfa, random=d ~ 1 | experiment)
+                       data=nfa, random=d ~ 1 | experiment, start=start)
 nfa.LN4.mixed <- medrm(response ~ conc, fct=LN.4(),
- data=nfa, random=d ~ 1 | experiment)
+                       data=nfa, random=d ~ 1 | experiment, start=start)
 nfa.W14.mixed <- medrm(response ~ conc, fct=W1.4(),
- data=nfa, random=d ~ 1 | experiment)
+                       data=nfa, random=d ~ 1 | experiment, start=start)
 nfa.W24.mixed <- medrm(response ~ conc, fct=W2.4(),
- data=nfa, random=d ~ 1 | experiment)
-
-summary(nfa.LL4.mixed)
-summary(nfa.LN4.mixed)
-summary(nfa.W14.mixed)
-summary(nfa.W24.mixed)
-
+                       data=nfa, random=d ~ 1 | experiment, start=start)
 
 ## information criteria
-medrcselect(nfa.LL4.mixed, nfa.LN4.mixed,
-            nfa.W14.mixed, nfa.W24.mixed)
+AIC(nfa.LL4.mixed, nfa.LN4.mixed,
+    nfa.W14.mixed, nfa.W24.mixed)
 
-
-## Background p0=0.01
-nfa0.01 <- mmaED(nfa.LL4.mixed, nfa.LN4.mixed,
+## BMDL estimation for BMR 1, 5, 10, 20
+mmaED(nfa.LL4.mixed, nfa.LN4.mixed,
       nfa.W14.mixed, nfa.W24.mixed,
       respLev=c(1,5,10,20),
-      interval = "buckland", bmd = "extra", background=0.01,
+      interval = "buckland", bmd = "additive",
       dmList=list(LL4.loged, LN4.loged,
                   W14.loged, W24.loged))
-exp(nfa0.01$retMat[, c(1, 3)])
-
-## Background p0=0.05 (default)
-nfa0.05 <- mmaED(nfa.LL4.mixed, nfa.LN4.mixed,
-      nfa.W14.mixed, nfa.W24.mixed,
-      respLev=c(1,5,10,20),
-      interval = "buckland", bmd = "extra", background=0.05,
-      dmList=list(LL4.loged, LN4.loged,
-                  W14.loged, W24.loged))
-exp(nfa0.05$retMat[, c(1, 3)])
-
-## Background p0=0.1
-nfa0.10 <- mmaED(nfa.LL4.mixed, nfa.LN4.mixed,
-      nfa.W14.mixed, nfa.W24.mixed,
-      respLev=c(1,5,10,20),
-      interval = "buckland", bmd = "extra", background=0.1,
-      dmList=list(LL4.loged, LN4.loged,
-                  W14.loged, W24.loged))
-exp(nfa0.10$retMat[, c(1, 3)])
-
 }
-
+}
 
 \keyword{datasets}

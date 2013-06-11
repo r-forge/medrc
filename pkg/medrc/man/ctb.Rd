@@ -24,62 +24,56 @@
   analytical display for neurotoxicity screening. Lab Chip 2010; 10:701-709.
 }
 
+
 \examples{
+\dontrun{
 data(ctb)
+ctb$day <- as.factor(ctb$day)
+ctb$dayplate <- as.factor(with(ctb, paste(day, plate, sep="/")))
+
+ggplot(ctb, aes(x=log(conc), y=fluorescence, colour=day, group=day:plate)) + 
+  geom_point()
+
+# starting values for fixed effects
+fix <- coefficients(drm(fluorescence ~ conc, fct=LL.4(), data=ctb))
+
+# starting values for random day effects
+rday <- drm(fluorescence ~ conc, curveid=day, fct=LL.4(), data=ctb)
+cmatday <- matrix(coefficients(rday), ncol=4)
+mday <- apply(cmatday, 2, mean)
+names(mday) <- letters[2:5]
+rmatday <- t(apply(cmatday, 1, function(x) x-mday))
+rownames(rmatday) <- levels(ctb$day)
+colnames(rmatday) <- letters[2:5]
+
+start <- list(fixed=fix, random=list(day=rmatday[,3, drop=FALSE]))
+
 
 ## set of nonlinear mixed models
-ctb.LL4.mixed <- medrm(fluorescence  ~ conc, fct=LL.4(),
- data=ctb, random=d  ~ 1 | day/plate)
-ctb.LN4.mixed <- medrm(fluorescence  ~ conc, fct=LN.4(),
- data=ctb, random=d  ~ 1 | day/plate)
-ctb.W14.mixed <- medrm(fluorescence  ~ conc, fct=W1.4(),
- data=ctb, random=d  ~ 1 | day/plate)
-ctb.W24.mixed <- medrm(fluorescence  ~ conc, fct=W2.4(),
- data=ctb, random=d  ~ 1 | day/plate)
-ctb.FPL4a.mixed <- medrm(fluorescence ~ conc, fct=FPL.4(-2, 0.5),
- data=ctb, random=d  ~ 1 | day/plate)
-ctb.FPL4b.mixed <- medrm(fluorescence ~ conc, fct=FPL.4(-1, 1),
- data=ctb, random=d ~ 1 | day/plate)
-ctb.FPL4c.mixed <- medrm(fluorescence ~ conc, fct=FPL.4(-1, 2),
- data=ctb, random=d  ~ 1 | day/plate)
-ctb.FPL4d.mixed <- medrm(fluorescence ~ conc, fct=FPL.4(-0.5, 3),
- data=ctb, random=d  ~ 1 | day/plate)
-
-summary(ctb.LL4.mixed)
-summary(ctb.LN4.mixed)
-summary(ctb.W14.mixed)
-summary(ctb.W24.mixed)
-summary(ctb.FPL4a.mixed)
-summary(ctb.FPL4b.mixed)
-summary(ctb.FPL4c.mixed)
-summary(ctb.FPL4d.mixed)
+ctb.LL4.mixed <- medrm(fluorescence  ~ conc, fct=LL.4(), 
+                       data=ctb, random=d  ~ 1 | day/plate, start=start)
+ctb.LN4.mixed <- medrm(fluorescence  ~ conc, fct=LN.4(), 
+                       data=ctb, random=d  ~ 1 | day/plate, start=start)
+ctb.W14.mixed <- medrm(fluorescence  ~ conc, fct=W1.4(), 
+                       data=ctb, random=d  ~ 1 | day/plate, start=start)
+ctb.W24.mixed <- medrm(fluorescence  ~ conc, fct=W2.4(), 
+                       data=ctb, random=d  ~ 1 | day/plate, start=start)
+ctb.FPL4b.mixed <- medrm(fluorescence ~ conc, fct=FPL.4(-1, 1), 
+                         data=ctb, random=d ~ 1 | day/plate, start=start)
+ctb.FPL4c.mixed <- medrm(fluorescence ~ conc, fct=FPL.4(-1, 2), 
+                         data=ctb, random=d  ~ 1 | day/plate, start=start)
+ctb.FPL4d.mixed <- medrm(fluorescence ~ conc, fct=FPL.4(-0.5, 3), 
+                         data=ctb, random=d  ~ 1 | day/plate, start=start)
 
 ## information criteria
-medrcselect(ctb.LL4.mixed, ctb.LN4.mixed, ctb.W14.mixed,
-            ctb.W24.mixed, ctb.FPL4a.mixed, ctb.FPL4b.mixed,
-            ctb.FPL4c.mixed, ctb.FPL4d.mixed)
+AIC(ctb.LL4.mixed, ctb.LN4.mixed, ctb.W14.mixed,
+    ctb.W24.mixed, ctb.FPL4b.mixed,
+    ctb.FPL4c.mixed, ctb.FPL4d.mixed)
 
-## BMDL estimation for BMR 1, 5, 10, 20
-ctb0.01 <- mmaED(ctb.LL4.mixed, ctb.LN4.mixed, ctb.W14.mixed,
-      ctb.W24.mixed, ctb.FPL4a.mixed, ctb.FPL4b.mixed,
-      ctb.FPL4c.mixed, ctb.FPL4d.mixed,
-      respLev=c(1,5,10,20),
-      interval = "buckland", bmd = "extra", background=0.01)
-ctb0.01$retMat[, c(1, 3)]
-      
-ctb0.05 <- mmaED(ctb.LL4.mixed, ctb.LN4.mixed, ctb.W14.mixed,
-      ctb.W24.mixed, ctb.FPL4a.mixed, ctb.FPL4b.mixed,
-      ctb.FPL4c.mixed, ctb.FPL4d.mixed,
-      respLev=c(1,5,10,20),
-      interval = "buckland", bmd = "extra", background=0.05)
-ctb0.05$retMat[, c(1, 3)]
-      
-ctb0.10 <- mmaED(ctb.LL4.mixed, ctb.LN4.mixed, ctb.W14.mixed,
-      ctb.W24.mixed, ctb.FPL4a.mixed, ctb.FPL4b.mixed,
-      ctb.FPL4c.mixed, ctb.FPL4d.mixed,
-      respLev=c(1,5,10,20),
-      interval = "buckland", bmd = "extra", background=0.1)
-ctb0.10$retMat[, c(1, 3)]
+
 }
+}
+
+
 
 \keyword{datasets}
