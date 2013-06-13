@@ -40,7 +40,7 @@ plot.medrc <- function(x, ..., ndose=25, ranef=FALSE, level=NULL, logx=FALSE){
         eval(parse(text=paste("ggplot(mf, aes(x=",xname,", y=",yname,")) + geom_point(alpha=0.3) + geom_line(data=pdat, aes(x=dose, y=predictions, colour=ID))", sep="")))
       }
     } else {      
-      predictions <- x$fct$fct(dr, rbind(coefficients(x)))
+      predictions <- x$fct$fct(dr, rbind(fixef(x$fit)))
       pdat <- data.frame(predictions, dose=dr)   
       if (logx == TRUE){
         eval(parse(text=paste("ggplot(mf, aes(x=log(",xname,"), y=",yname,")) + geom_point(alpha=0.3) + geom_line(data=pdat, aes(x=log(dose), y=predictions), colour='blue3')", sep="")))

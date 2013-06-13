@@ -26,7 +26,7 @@ plot.glsdrc <- function(x, ..., ndose=25, logx=FALSE){
   } 
   
   if (is.null(x$curveid)){
-    predictions <- x$fct$fct(dr, rbind(coefficients(x)))
+    predictions <- x$fct$fct(dr, rbind(coefficients(x$fit)))
     pdat <- data.frame(predictions, dose=dr)   
     if (logx == TRUE){
       eval(parse(text=paste("ggplot(mf, aes(x=log(",xname,"), y=",yname,")) + geom_point(alpha=0.3) + geom_line(data=pdat, aes(x=log(dose), y=predictions), colour='blue3')", sep="")))
